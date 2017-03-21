@@ -7,6 +7,6 @@ func SaveCode(filename string, content string) (string, error) {
 }
 
 // DeleteCodeFile Delete the file and delete the dir if exsit.
-func DeleteCodeFile(fullpath string) error {
+func DeleteCodeDir(fullpath string) error {
 	return nil
 }

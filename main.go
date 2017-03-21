@@ -14,14 +14,10 @@ func main() {
 }
 
 func createRoute(c *gin.Context) {
-	var route models.RouteWrapper
+	var route models.ExRouteWrapper
 	err := c.BindJSON(route)
 	if err != nil {
 
 	}
-
-	// TODO Build image & push from code.
-
-	// TODO create Functions's route
 	functions.CreateRoute(route)
 }

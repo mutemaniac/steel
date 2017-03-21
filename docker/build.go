@@ -7,7 +7,7 @@ func Build(code string, lang string, image string) error {
 	if err != nil {
 		return err
 	}
-	defer DeleteCodeFile(fullpath)
+	defer DeleteCodeDir(fullpath)
 	// TODO dockerfile
 	err = GenerateDockerfile(lang, fullpath)
 	if err != nil {

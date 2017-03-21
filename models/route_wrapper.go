@@ -4,7 +4,7 @@ import "net/http"
 
 type Config map[string]string
 
-type RouteWrapper struct {
+type ExRouteWrapper struct {
 	AppName        string      `json:"app_name" binding:"required"`
 	Path           string      `json:"path" binding:"required"`
 	Code           string      `json:"code" binding:"required"`
