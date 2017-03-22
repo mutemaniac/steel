@@ -16,6 +16,11 @@ var (
 	DockerHubPwd    string
 )
 
+const (
+	DockerImageLib    = "library"
+	DockerImagePrefix = "serverless_"
+)
+
 func init() {
 	DockerHubServer = os.Getenv(dockerHubServerEvn)
 	DockerHubUser = os.Getenv(dockerHubUserEvn)

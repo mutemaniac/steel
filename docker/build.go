@@ -1,13 +1,25 @@
 package docker
 
+import (
+	"io/ioutil"
+	"os"
+
+	"github.com/mutemaniac/steel/config"
+)
+
 // Build Build docker image. Paramater may be changed sometimes.
-func Build(code string, lang string, image string) error {
-	// TODO save file
-	fullpath, err := SaveCode(code, "")
+func Build(code string, lang string, image string, appname string) error {
+	//Generate a temp directory
+	dir, err := ioutil.TempDir(config.CodeFileTmpDir, appname)
 	if err != nil {
 		return err
 	}
-	defer DeleteCodeDir(fullpath)
+	defer os.RemoveAll(dir)
+	// TODO save file
+	fullpath, err := SaveCode(dir, code, "")
+	if err != nil {
+		return err
+	}
 	// TODO dockerfile
 	err = GenerateDockerfile(lang, fullpath)
 	if err != nil {

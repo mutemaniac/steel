@@ -1,19 +1,12 @@
 package models
 
-import "net/http"
+import ironClient "github.com/iron-io/functions_go"
 
 type Config map[string]string
 
 type ExRouteWrapper struct {
-	AppName        string      `json:"app_name" binding:"required"`
-	Path           string      `json:"path" binding:"required"`
-	Code           string      `json:"code" binding:"required"`
-	Language       string      `json:""  binding:"required"`
-	Memory         uint64      `json:"memory"`
-	Headers        http.Header `json:"headers"`
-	Type           string      `json:"type"`
-	Format         string      `json:"format"`
-	MaxConcurrency int         `json:"max_concurrency"`
-	Timeout        int32       `json:"timeout"`
-	Config         `json:"config"`
+	ironClient.Route
+	AppName string `json:"appname" binding:"required"`
+	Code    string `json:"code" binding:"required"`
+	Runtime string `json:"runtime"  binding:"required"`
 }
