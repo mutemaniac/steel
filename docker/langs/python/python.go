@@ -1,11 +1,21 @@
-package langs
+package node
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/mutemaniac/steel/docker/langs"
 )
+
+func init() {
+	langs.RegisterLangHelper("node", new)
+}
+
+func new() (langs.LangHelper, error) {
+	return &PythonHelper{}, nil
+}
 
 type PythonHelper struct {
 }

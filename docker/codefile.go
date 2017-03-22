@@ -1,17 +1,26 @@
 package docker
 
-func CreateTempDir(appname string) (string, error) {
+import (
+	"errors"
+	"os"
+	"path/filepath"
 
-	return "", nil
-}
+	"github.com/mutemaniac/steel/docker/langs"
+)
 
-// SaveCode 把代码片段保存下来
-// return file fullpath && error
-func SaveCode(dir string, filename string, content string) (string, error) {
-	return "", nil
-}
+const sourcefileName = "func"
 
-// DeleteCodeFile Delete the file and delete the dir if exsit.
-func DeleteCodeDir(fullpath string) error {
-	return nil
+//SaveCode return file fullpath && error
+func SaveCode(dir string, lang langs.LangHelper, source string) (string, error) {
+	if source == "" {
+		return "", errors.New("source is null")
+	}
+	sourcefile := filepath.Join(dir, sourcefileName+lang.Extension())
+	sf, err := os.Create(sourcefile)
+	if err != nil {
+		return "", err
+	}
+	defer sf.Close()
+	sf.WriteString(source)
+	return sourcefile, nil
 }

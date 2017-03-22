@@ -1,11 +1,21 @@
-package langs
+package golang
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/mutemaniac/steel/docker/langs"
 )
+
+func init() {
+	langs.RegisterLangHelper("golang", new)
+}
+
+func new() (langs.LangHelper, error) {
+	return &GoLangHelper{}, nil
+}
 
 type GoLangHelper struct {
 }
@@ -29,7 +39,7 @@ func (lh *GoLangHelper) PreBuild() error {
 		return err
 	}
 	// todo: this won't work if the function is more complex since the import paths won't match up, need to fix
-	pbcmd := fmt.Sprintf("docker run --rm -v %s:/go/src/github.com/x/y -w /go/src/github.com/x/y iron/go:dev go build -o func", wd)
+	pbcmd := fmt.Sprintf("docker run --rm -v %s:/go/src/github.com/x/y -w /go/src/github.com/x/y iron/go:dev go get && go build -o func", wd)
 	fmt.Println("Running prebuild command:", pbcmd)
 	parts := strings.Fields(pbcmd)
 	head := parts[0]
@@ -46,5 +56,4 @@ func (lh *GoLangHelper) PreBuild() error {
 
 func (lh *GoLangHelper) AfterBuild() error {
 	return os.Remove("func")
-
 }
