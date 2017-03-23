@@ -2,11 +2,13 @@ package docker
 
 import (
 	"bytes"
-	"html/template"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"os"
+
+	"fmt"
 
 	"github.com/mutemaniac/steel/docker/langs"
 )
@@ -33,7 +35,7 @@ func GenerateDockerfile(lang langs.LangHelper, dir string) error {
 		buffer.WriteString(s)
 		buffer.WriteString("\"")
 	}
-
+	fmt.Print(buffer.String())
 	t := template.Must(template.New("Dockerfile").Parse(lang.DockerfileTemplate()))
 	err = t.Execute(df, struct {
 		BaseImage, Entrypoint string

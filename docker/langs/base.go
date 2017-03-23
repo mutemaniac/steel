@@ -23,8 +23,9 @@ type LangHelper interface {
 	Extension() string
 	DockerfileTemplate() string
 	BaseImage() string
+	SetBaseDir(dir string)
 }
-type newLangHelperFunc func() (LangHelper, error)
+type newLangHelperFunc func(dir string) (LangHelper, error)
 
 var langHelpers = map[string](newLangHelperFunc){}
 
@@ -32,13 +33,13 @@ func RegisterLangHelper(name string, new newLangHelperFunc) {
 	langHelpers[name] = new
 }
 
-func New(name string) (LangHelper, error) {
-	if name == "" {
+func New(runtime string, dir string) (LangHelper, error) {
+	if runtime == "" {
 		return nil, nil
 	}
-	f, ok := langHelpers[name]
+	f, ok := langHelpers[runtime]
 	if !ok {
-		return nil, errors.New("The language " + name + " not support")
+		return nil, errors.New("The language " + runtime + " not support")
 	}
-	return f()
+	return f(dir)
 }

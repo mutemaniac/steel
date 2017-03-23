@@ -1,11 +1,12 @@
 package common
 
-// Savefile 保存文件到指定目录
-func Savefile(filename string, content string) (string, error) {
-	return "", nil
-}
+import "os"
 
-// DeleteFile 删除文件
-func DeleteFile(fullpath string) error {
-	return nil
+func Exists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }

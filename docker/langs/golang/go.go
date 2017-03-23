@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"path/filepath"
+
 	"github.com/mutemaniac/steel/docker/langs"
 )
 
@@ -20,17 +22,20 @@ func init() {
 	langs.RegisterLangHelper("golang", new)
 }
 
-func new() (langs.LangHelper, error) {
-	return &GoLangHelper{}, nil
+func new(dir string) (langs.LangHelper, error) {
+	return &GoLangHelper{dir: dir}, nil
 }
 
 type GoLangHelper struct {
+	dir string
 }
 
 func (lh *GoLangHelper) Extension() string {
 	return ".go"
 }
-
+func (lh *GoLangHelper) BaseImage() string {
+	return baseimage
+}
 func (lh *GoLangHelper) Entrypoint() string {
 	return "./func"
 }
@@ -41,18 +46,13 @@ func (lh *GoLangHelper) HasPreBuild() bool {
 
 // PreBuild for Go builds the binary so the final image can be as small as possible
 func (lh *GoLangHelper) PreBuild() error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	// todo: this won't work if the function is more complex since the import paths won't match up, need to fix
-	pbcmd := fmt.Sprintf("docker run --rm -v %s:/go/src/github.com/x/y -w /go/src/github.com/x/y iron/go:dev go get && go build -o func", wd)
+	pbcmd := fmt.Sprintf("docker run --rm -v %s:/go/src/github.com/x/y -w /go/src/github.com/x/y iron/go:dev go build -o func", lh.dir)
 	fmt.Println("Running prebuild command:", pbcmd)
 	parts := strings.Fields(pbcmd)
 	head := parts[0]
 	parts = parts[1:len(parts)]
 	cmd := exec.Command(head, parts...)
-	// cmd.Dir = dir
+	cmd.Dir = lh.dir
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
@@ -62,13 +62,13 @@ func (lh *GoLangHelper) PreBuild() error {
 }
 
 func (lh *GoLangHelper) AfterBuild() error {
-	return os.Remove("func")
+	return os.Remove(filepath.Join(lh.dir, "func"))
 }
 
 func (lh *GoLangHelper) DockerfileTemplate() string {
 	return tplDockerfile
 }
 
-func (lh *GoLangHelper) BaseImage() string {
-	return baseimage
+func (lh *GoLangHelper) SetBaseDir(dir string) {
+	lh.dir = dir
 }

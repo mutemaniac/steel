@@ -1,4 +1,4 @@
-package langs
+package node
 
 import "github.com/mutemaniac/steel/docker/langs"
 
@@ -12,11 +12,12 @@ func init() {
 	langs.RegisterLangHelper("node", new)
 }
 
-func new() (langs.LangHelper, error) {
-	return &NodeLangHelper{}, nil
+func new(dir string) (langs.LangHelper, error) {
+	return &NodeLangHelper{dir: dir}, nil
 }
 
 type NodeLangHelper struct {
+	dir string
 }
 
 func (lh *NodeLangHelper) Entrypoint() string {
@@ -24,6 +25,9 @@ func (lh *NodeLangHelper) Entrypoint() string {
 }
 func (lh *NodeLangHelper) Extension() string {
 	return ".js"
+}
+func (lh *NodeLangHelper) BaseImage() string {
+	return "iron/node"
 }
 
 func (lh *NodeLangHelper) HasPreBuild() bool {
@@ -42,7 +46,6 @@ func (lh *NodeLangHelper) AfterBuild() error {
 func (lh *NodeLangHelper) DockerfileTemplate() string {
 	return tplDockerfile
 }
-
-func (lh *NodeLangHelper) BaseImage() string {
-	return "iron/node"
+func (lh *NodeLangHelper) SetBaseDir(dir string) {
+	lh.dir = dir
 }

@@ -1,4 +1,4 @@
-package node
+package python
 
 import (
 	"fmt"
@@ -6,6 +6,9 @@ import (
 	"os/exec"
 	"strings"
 
+	"path/filepath"
+
+	"github.com/mutemaniac/steel/common"
 	"github.com/mutemaniac/steel/docker/langs"
 )
 
@@ -16,14 +19,15 @@ ENTRYPOINT [{{ .Entrypoint }}]
 `
 
 func init() {
-	langs.RegisterLangHelper("node", new)
+	langs.RegisterLangHelper("python", new)
 }
 
-func new() (langs.LangHelper, error) {
-	return &PythonHelper{}, nil
+func new(dir string) (langs.LangHelper, error) {
+	return &PythonHelper{dir: dir}, nil
 }
 
 type PythonHelper struct {
+	dir string
 }
 
 func (lh *PythonHelper) Entrypoint() string {
@@ -32,24 +36,28 @@ func (lh *PythonHelper) Entrypoint() string {
 func (lh *PythonHelper) Extension() string {
 	return ".py"
 }
-
+func (lh *PythonHelper) BaseImage() string {
+	return "iron/python:2"
+}
 func (lh *PythonHelper) HasPreBuild() bool {
-	return true
+	return common.Exists(filepath.Join(lh.dir, "requirements.txt"))
 }
 
 // PreBuild for Go builds the binary so the final image can be as small as possible
 func (lh *PythonHelper) PreBuild() error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
+	// wd, err := os.Getwd()
+	// if err != nil {
+	// 	return err
+	// }
 
-	pbcmd := fmt.Sprintf("docker run --rm -v %s:/worker -w /worker iron/python:2-dev pip install -t packages -r requirements.txt", wd)
+	pbcmd := fmt.Sprintf("docker run --rm -v %s:/worker -w /worker iron/python:2-dev pip install -t packages -r requirements.txt", lh.dir)
 	fmt.Println("Running prebuild command:", pbcmd)
 	parts := strings.Fields(pbcmd)
+	fmt.Println("parts: %v", parts)
 	head := parts[0]
 	parts = parts[1:len(parts)]
 	cmd := exec.Command(head, parts...)
+	cmd.Dir = lh.dir
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
@@ -65,7 +73,6 @@ func (lh *PythonHelper) AfterBuild() error {
 func (lh *PythonHelper) DockerfileTemplate() string {
 	return tplDockerfile
 }
-
-func (lh *PythonHelper) BaseImage() string {
-	return "iron/python:2"
+func (lh *PythonHelper) SetBaseDir(dir string) {
+	lh.dir = dir
 }

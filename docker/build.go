@@ -19,7 +19,7 @@ func Build(code string, lang string, image string, appname string) error {
 		return err
 	}
 	defer os.RemoveAll(dir)
-	langHelper, err := langs.New(lang)
+	langHelper, err := langs.New(lang, dir)
 	if err != nil {
 		return nil
 	}
@@ -53,6 +53,7 @@ func dockerbuild(dir string, helper langs.LangHelper, image string) error {
 	if helper.HasPreBuild() {
 		err := helper.PreBuild()
 		if err != nil {
+			fmt.Printf("PreBuild: %v \n", err)
 			return err
 		}
 	}
@@ -66,6 +67,7 @@ func dockerbuild(dir string, helper langs.LangHelper, image string) error {
 	if helper != nil {
 		err := helper.AfterBuild()
 		if err != nil {
+			fmt.Printf("AfterBuild: %v \n", err)
 			return err
 		}
 	}
