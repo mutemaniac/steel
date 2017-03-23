@@ -2,6 +2,12 @@ package langs
 
 import "github.com/mutemaniac/steel/docker/langs"
 
+const tplDockerfile = `FROM {{ .BaseImage }}
+WORKDIR /function
+ADD . /function/
+ENTRYPOINT [{{ .Entrypoint }}]
+`
+
 func init() {
 	langs.RegisterLangHelper("node", new)
 }
@@ -31,4 +37,12 @@ func (lh *NodeLangHelper) PreBuild() error {
 
 func (lh *NodeLangHelper) AfterBuild() error {
 	return nil
+}
+
+func (lh *NodeLangHelper) DockerfileTemplate() string {
+	return tplDockerfile
+}
+
+func (lh *NodeLangHelper) BaseImage() string {
+	return "iron/node"
 }

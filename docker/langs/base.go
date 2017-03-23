@@ -21,6 +21,8 @@ type LangHelper interface {
 	PreBuild() error
 	AfterBuild() error
 	Extension() string
+	DockerfileTemplate() string
+	BaseImage() string
 }
 type newLangHelperFunc func() (LangHelper, error)
 

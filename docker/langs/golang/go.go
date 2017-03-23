@@ -9,6 +9,13 @@ import (
 	"github.com/mutemaniac/steel/docker/langs"
 )
 
+const tplDockerfile = `FROM {{ .BaseImage }}
+WORKDIR /function
+ADD . /function/
+ENTRYPOINT [{{ .Entrypoint }}]
+`
+const baseimage = `iron/go`
+
 func init() {
 	langs.RegisterLangHelper("golang", new)
 }
@@ -56,4 +63,12 @@ func (lh *GoLangHelper) PreBuild() error {
 
 func (lh *GoLangHelper) AfterBuild() error {
 	return os.Remove("func")
+}
+
+func (lh *GoLangHelper) DockerfileTemplate() string {
+	return tplDockerfile
+}
+
+func (lh *GoLangHelper) BaseImage() string {
+	return baseimage
 }

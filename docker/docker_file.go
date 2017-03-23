@@ -1,11 +1,43 @@
 package docker
 
-import "github.com/iron-io/functions/fn/langs"
+import (
+	"bytes"
+	"html/template"
+	"path/filepath"
+	"strings"
+
+	"os"
+
+	"github.com/mutemaniac/steel/docker/langs"
+)
 
 // GenerateDockerfile Generate the docker file.
-// language -- go python nodejs
+// lang -- go python nodejs
 // filepath -- code file
-func GenerateDockerfile(lang langs.LangHelper, sourcefile string) error {
+func GenerateDockerfile(lang langs.LangHelper, dir string) error {
+	dockerfile := filepath.Join(dir, "Dockerfile")
+	df, err := os.Create(dockerfile)
+	if err != nil {
+		return err
+	}
+	defer df.Close()
 
-	return nil
+	// convert entrypoint string to slice
+	epvals := strings.Fields(lang.Entrypoint())
+	var buffer bytes.Buffer
+	for i, s := range epvals {
+		if i > 0 {
+			buffer.WriteString(", ")
+		}
+		buffer.WriteString("\"")
+		buffer.WriteString(s)
+		buffer.WriteString("\"")
+	}
+
+	t := template.Must(template.New("Dockerfile").Parse(lang.DockerfileTemplate()))
+	err = t.Execute(df, struct {
+		BaseImage, Entrypoint string
+	}{lang.BaseImage(), buffer.String()})
+
+	return err
 }
