@@ -116,7 +116,7 @@ func Test_dockerbuild(t *testing.T) {
 			name: "go",
 			args: args{
 				dir:    "/Users/tang/Documents/test/golang",
-				helper: Must(langs.New("golang", "/Users/tang/Documents/test/golang")),
+				helper: Must(NewLangHelper("golang", "/Users/tang/Documents/test/golang")),
 				image:  "mutemaniac/iron-go:0.1",
 			},
 			wantErr: false,
@@ -125,7 +125,7 @@ func Test_dockerbuild(t *testing.T) {
 			name: "python",
 			args: args{
 				dir:    "/Users/tang/Documents/test/python",
-				helper: Must(langs.New("python", "/Users/tang/Documents/test/python")),
+				helper: Must(NewLangHelper("python", "/Users/tang/Documents/test/python")),
 				image:  "mutemaniac/iron-python:0.1",
 			},
 			wantErr: false,
@@ -135,7 +135,7 @@ func Test_dockerbuild(t *testing.T) {
 			args: args{
 				dir:    "/Users/tang/Documents/test/node",
 				image:  "mutemaniac/iron-node:0.1",
-				helper: Must(langs.New("node", "/Users/tang/Documents/test/node")),
+				helper: Must(NewLangHelper("node", "/Users/tang/Documents/test/node")),
 			},
 			wantErr: false,
 		},

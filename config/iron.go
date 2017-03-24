@@ -15,6 +15,6 @@ var (
 func init() {
 	IronFunciotnsServer = os.Getenv(ironFunciotnsServerEvn)
 	if IronFunciotnsServer == "" {
-		IronFunciotnsServer = `http://52.80.17.251:8083`
+		IronFunciotnsServer = `http://192.168.56.6:8080/v1`
 	}
 }

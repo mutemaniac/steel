@@ -15,9 +15,19 @@ func main() {
 
 func createRoute(c *gin.Context) {
 	var route models.ExRouteWrapper
-	err := c.BindJSON(route)
+	err := c.BindJSON(&route)
 	if err != nil {
-
+		c.JSON(304, gin.H{
+			"message": err.Error(),
+		})
+		return
 	}
-	functions.CreateRoute(route)
+	r, err := functions.CreateRoute(route)
+	if err != nil {
+		c.JSON(304, gin.H{
+			"message": err.Error(),
+		})
+	} else {
+		c.JSON(200, r)
+	}
 }

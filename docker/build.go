@@ -13,27 +13,34 @@ import (
 
 // Build Build docker image. Paramater may be changed sometimes.
 func Build(code string, lang string, image string, appname string) error {
+	fmt.Println("Enter Build.")
 	//Generate a temporary directory
 	dir, err := ioutil.TempDir(config.CodeFileTmpDir, appname)
 	if err != nil {
+		fmt.Printf("TempDir error %v.", err)
 		return err
 	}
 	defer os.RemoveAll(dir)
-	langHelper, err := langs.New(lang, dir)
+	fmt.Println("New langHelper.", lang)
+	langHelper, err := NewLangHelper(lang, dir)
 	if err != nil {
-		return nil
+		fmt.Printf("New langHelper error %v.\n", err)
+		return err
 	}
 	//Save source code file.
+	fmt.Println("SaveCode.")
 	_, err = SaveCode(dir, langHelper, code)
 	if err != nil {
 		return err
 	}
 	//Docker build
+	fmt.Println("dockerbuild.")
 	err = dockerbuild(dir, langHelper, image)
 	if err != nil {
 		return err
 	}
 	// Docker push
+	fmt.Println("dockerbuild.")
 	err = dockerpush(image)
 	if err != nil {
 		return err
@@ -43,6 +50,7 @@ func Build(code string, lang string, image string, appname string) error {
 }
 
 func dockerbuild(dir string, helper langs.LangHelper, image string) error {
+	fmt.Println("Enter dockerbuild.")
 	dockerfile := filepath.Join(dir, "Dockerfile")
 	if !exists(dockerfile) {
 		err := GenerateDockerfile(helper, dir)
@@ -75,6 +83,7 @@ func dockerbuild(dir string, helper langs.LangHelper, image string) error {
 }
 
 func dockerpush(image string) error {
+	fmt.Println("Enter dockerpush.")
 	cmd := exec.Command("docker", "push", image)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout

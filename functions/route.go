@@ -6,14 +6,17 @@ import (
 	ironClient "github.com/iron-io/functions_go"
 	"github.com/mutemaniac/steel/config"
 	"github.com/mutemaniac/steel/docker"
+
+	"fmt"
+
 	"github.com/mutemaniac/steel/models"
 )
 
 // CreateRoute Create iron functions route wirh source code.
 // @param route is the parameters that passed by http interface.
 // @return
-func CreateRoute(route models.ExRouteWrapper) error {
-
+func CreateRoute(route models.ExRouteWrapper) (models.ExRouteWrapper, error) {
+	fmt.Printf("Enter CreateRoute: %v.\n", route)
 	if route.Image == "" {
 		route.Image = config.DockerHubServer + `/` +
 			config.DockerImageLib + `/` +
@@ -25,7 +28,7 @@ func CreateRoute(route models.ExRouteWrapper) error {
 	err := docker.Build(route.Code, route.Runtime, route.Image, route.AppName)
 	if err != nil {
 		// TODO ceate Route failure & callback.
-		return err
+		return route, err
 	}
 
 	// Create Functions's route
@@ -34,7 +37,7 @@ func CreateRoute(route models.ExRouteWrapper) error {
 	appwrapper, _, err := appClinet.AppsAppGet(route.AppName)
 	if nil != err {
 		// TODO ceate Route failure & callback.
-		return err
+		return route, err
 	}
 	if appwrapper.App.Name == "" {
 		//There is no app then create one.
@@ -47,7 +50,7 @@ func CreateRoute(route models.ExRouteWrapper) error {
 	routewrapper, _, err := routeClient.AppsAppRoutesRouteGet(route.AppName, route.Path)
 	if nil != err {
 		// TODO ceate Route failure & callback.
-		return err
+		return route, err
 	}
 	//FIXME If there is no route.
 	if routewrapper.Route.Path == "" {
@@ -56,7 +59,7 @@ func CreateRoute(route models.ExRouteWrapper) error {
 		_, _, err := routeClient.AppsAppRoutesPost(route.AppName, routewrap)
 		if err != nil {
 			// TODO ceate Route failure & callback.
-			return err
+			return route, err
 		}
 	} else {
 		var routewrap ironClient.RouteWrapper
@@ -64,8 +67,8 @@ func CreateRoute(route models.ExRouteWrapper) error {
 		_, _, err := routeClient.AppsAppRoutesRoutePatch(route.AppName, route.Path, routewrap)
 		if err != nil {
 			// TODO ceate Route failure & callback.
-			return err
+			return route, err
 		}
 	}
-	return nil
+	return route, nil
 }

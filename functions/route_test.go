@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	ironClient "github.com/iron-io/functions_go"
+
 	"github.com/mutemaniac/steel/models"
 )
 
@@ -21,7 +22,7 @@ func TestCreateRoute(t *testing.T) {
 			name: "go",
 			args: args{
 				route: models.ExRouteWrapper{
-					AppName: "golang",
+					AppName: "tang",
 					Runtime: "golang",
 					Route: ironClient.Route{
 						Path:  "/golangdemo",

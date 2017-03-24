@@ -2,6 +2,7 @@ package docker
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -12,6 +13,7 @@ const sourcefileName = "func"
 
 //SaveCode return file fullpath && error
 func SaveCode(dir string, lang langs.LangHelper, source string) (string, error) {
+	fmt.Println("Enter SaveCode.")
 	if source == "" {
 		return "", errors.New("source is null")
 	}
