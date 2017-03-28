@@ -3,7 +3,7 @@ package functions
 import (
 	"testing"
 
-	ironClient "github.com/iron-io/functions_go"
+	ironClient "github.com/mutemaniac/functions_go"
 
 	"github.com/mutemaniac/steel/models"
 )
