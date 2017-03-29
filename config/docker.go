@@ -23,6 +23,12 @@ const (
 
 func init() {
 	DockerHubServer = os.Getenv(dockerHubServerEvn)
+	if DockerHubServer == "" {
+		DockerHubServer = "dcatalog.hnaresearch.com"
+	}
 	DockerHubUser = os.Getenv(dockerHubUserEvn)
+	if DockerHubUser == "" {
+		DockerHubUser = "qian.tang@hnair.com"
+	}
 	DockerHubPwd = os.Getenv(dockerHubPwdEvn)
 }
