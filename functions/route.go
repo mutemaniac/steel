@@ -57,11 +57,14 @@ func CreateRoute(route models.ExRouteWrapper) (models.ExRouteWrapper, error) {
 		fmt.Println("Create a new route.")
 		var routewrap ironClient.RouteWrapper
 		routewrap.Route = route.Route
+		fmt.Printf("before AppsAppRoutesPost route: %v\n", route)
+		fmt.Printf("before AppsAppRoutesPost routewrap: %v\n", routewrap)
 		retRoute, _, err := routeClient.AppsAppRoutesPost(route.AppName, routewrap)
 		if err != nil {
 			// TODO ceate Route failure & callback.
 			return route, err
 		}
+		fmt.Printf("AppsAppRoutesPost retRoute: %v\n", retRoute)
 		route.Route = retRoute.Route
 	} else {
 		fmt.Println("Update the old route.")
