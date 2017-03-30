@@ -21,9 +21,12 @@ func main() {
 	}
 
 	router := gin.Default()
+	v1 := router.Group("v1")
+	{
+		v1.POST("/route", createRoute)
+	}
 
-	router.POST("/post", createRoute)
-	router.Run(":8080")
+	router.Run(":8081")
 }
 
 func createRoute(c *gin.Context) {
