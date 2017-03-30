@@ -5,6 +5,7 @@ import (
 
 	ironClient "github.com/mutemaniac/functions_go"
 	"github.com/mutemaniac/steel/config"
+	"github.com/mutemaniac/steel/docker"
 
 	"fmt"
 
@@ -24,11 +25,11 @@ func CreateRoute(route models.ExRouteWrapper) (models.ExRouteWrapper, error) {
 			strings.TrimPrefix(route.Path, `/`)
 	}
 	// Build image & push from code.
-	// err := docker.Build(route.Code, route.Runtime, route.Image, route.AppName)
-	// if err != nil {
-	// 	// TODO ceate Route failure & callback.
-	// 	return route, err
-	// }
+	err := docker.Build(route.Code, route.Runtime, route.Image, route.AppName)
+	if err != nil {
+		// TODO ceate Route failure & callback.
+		return route, err
+	}
 
 	// Create Functions's route
 	appClinet := ironClient.NewAppsApiWithBasePath(config.IronFunciotnsServer)
