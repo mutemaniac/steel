@@ -28,6 +28,13 @@ type ExRouteWrapper struct {
 	Code             string `json:"code" binding:"required"`
 	Runtime          string `json:"runtime"  binding:"required"`
 }
+type AsyncRouteWrapper struct {
+	ironClient.Route `json:"route" binding:"required"`
+	AppName          string `json:"appname" binding:"required"`
+	Code             string `json:"code" binding:"required"`
+	Runtime          string `json:"runtime"  binding:"required"`
+	callback         string `json:"callback"  binding:"required"`
+}
 
 // SetDefaults sets zeroed field to defaults.
 func (r *ExRouteWrapper) SetDefaults(oldR *ironClient.Route) {

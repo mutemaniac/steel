@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/mutemaniac/steel/config"
 	"github.com/mutemaniac/steel/docker"
@@ -24,11 +26,35 @@ func main() {
 	v1 := router.Group("v1")
 	{
 		v1.POST("/route", createRoute)
+		async := v1.Group("async")
+		{
+			async.POST("/route", asyncCreateRoute)
+		}
 	}
 
 	router.Run(":8081")
 }
-
+func asyncCreateRoute(c *gin.Context) {
+	var route models.AsyncRouteWrapper
+	err := c.BindJSON(&route)
+	if err != nil {
+		c.JSON(304, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+	ctx, _ := context.WithCancel(context.Background())
+	taskid, err := functions.AsyncCreateRoute(ctx, route)
+	if err != nil {
+		c.JSON(304, gin.H{
+			"message": err.Error(),
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"taskid": taskid,
+		})
+	}
+}
 func createRoute(c *gin.Context) {
 	var route models.ExRouteWrapper
 	err := c.BindJSON(&route)
@@ -38,7 +64,9 @@ func createRoute(c *gin.Context) {
 		})
 		return
 	}
-	r, err := functions.CreateRoute(route)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+	r, err := functions.CreateRoute(ctx, route)
 	if err != nil {
 		c.JSON(304, gin.H{
 			"message": err.Error(),
@@ -46,4 +74,5 @@ func createRoute(c *gin.Context) {
 	} else {
 		c.JSON(200, r)
 	}
+
 }

@@ -1,6 +1,7 @@
 package functions
 
 import (
+	"context"
 	"strings"
 
 	ironClient "github.com/mutemaniac/functions_go"
@@ -12,10 +13,14 @@ import (
 	"github.com/mutemaniac/steel/models"
 )
 
+func AsyncCreateRoute(ctx context.Context, route models.AsyncRouteWrapper) (string, error) {
+	return "", nil
+}
+
 // CreateRoute Create iron functions route wirh source code.
 // @param route is the parameters that passed by http interface.
 // @return
-func CreateRoute(route models.ExRouteWrapper) (models.ExRouteWrapper, error) {
+func CreateRoute(ctx context.Context, route models.ExRouteWrapper) (models.ExRouteWrapper, error) {
 	fmt.Printf("Enter CreateRoute: %v.\n", route)
 	if route.Image == "" {
 		route.Image = config.DockerHubServer + `/` +
