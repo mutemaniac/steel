@@ -3,10 +3,10 @@ package functions
 import (
 	"context"
 	"strings"
+	"time"
 
 	ironClient "github.com/mutemaniac/functions_go"
 	"github.com/mutemaniac/steel/config"
-	"github.com/mutemaniac/steel/docker"
 
 	"fmt"
 
@@ -19,9 +19,18 @@ import (
 	"github.com/mutemaniac/steel/models"
 )
 
-func doCallBack(ctx context.Context, route models.ExRouteWrapper, callback string) error {
-	// do call back
-	br, err := json.Marshal(route)
+func doCallBack(ctx context.Context, taskid string, route models.ExRouteWrapper, retErr error, callback string) error {
+	// Do call back
+	fmt.Printf("Enter doCallBack. \n")
+	br, err := json.Marshal(struct {
+		Route  models.ExRouteWrapper `json:"route"`
+		RetErr error                 `json:"error"`
+		Taskid string                `json:"taskid"`
+	}{
+		Route:  route,
+		RetErr: retErr,
+		Taskid: taskid,
+	})
 	if err != nil {
 		return err
 	}
@@ -34,7 +43,9 @@ func doCallBack(ctx context.Context, route models.ExRouteWrapper, callback strin
 	c := make(chan error, 1)
 	go func() {
 		c <- func(resp *http.Response, err error) error {
-			defer resp.Body.Close()
+			if err == nil {
+				defer resp.Body.Close()
+			}
 			return err
 		}(client.Do(req))
 	}()
@@ -46,9 +57,8 @@ func doCallBack(ctx context.Context, route models.ExRouteWrapper, callback strin
 	case err := <-c:
 		return err
 	}
-	return nil
 }
-func AsyncCreateRoute(ctx context.Context, args interface{}) {
+func AsyncCreateRoute(ctx context.Context, taskid string, args interface{}) {
 	//route models.AsyncRouteWrapper
 	route, ok := args.(models.AsyncRouteWrapper)
 	if !ok {
@@ -56,18 +66,19 @@ func AsyncCreateRoute(ctx context.Context, args interface{}) {
 	}
 	retRoute, err := CreateRoute(ctx, route.ExRouteWrapper)
 	if err != nil {
-		panic(err)
+		fmt.Printf("CreateRoute error, %v\n", err)
+		//panic(err)
 	}
 	// Do call back
-	doCallBack(ctx, retRoute, route.Callback)
-	return
+	err = doCallBack(ctx, taskid, retRoute, err, route.Callback)
+	fmt.Printf("doCallBack error, %v .\n", err)
 }
 
 // CreateRoute Create iron functions route wirh source code.
 // @param route is the parameters that passed by http interface.
 // @return
 func CreateRoute(ctx context.Context, route models.ExRouteWrapper) (models.ExRouteWrapper, error) {
-	fmt.Printf("Enter CreateRoute: %v.\n", route)
+	fmt.Printf("Enter CreateRoute.\n")
 	if route.Image == "" {
 		route.Image = config.DockerHubServer + `/` +
 			config.DockerImageLib + `/` +
@@ -76,11 +87,12 @@ func CreateRoute(ctx context.Context, route models.ExRouteWrapper) (models.ExRou
 			strings.TrimPrefix(route.Path, `/`)
 	}
 	// Build image & push from code.
-	err := docker.Build(ctx, route.Code, route.Runtime, route.Image, route.AppName)
-	if err != nil {
-		// TODO ceate Route failure & callback.
-		return route, err
-	}
+	// err := docker.Build(ctx, route.Code, route.Runtime, route.Image, route.AppName)
+	// if err != nil {
+	// 	// TODO ceate Route failure & callback.
+	// 	return route, err
+	// }
+	time.Sleep(time.Second * 30)
 
 	// Create Functions's route
 	appClinet := ironClient.NewAppsApiWithBasePath(config.IronFunciotnsServer)
@@ -94,7 +106,12 @@ func CreateRoute(ctx context.Context, route models.ExRouteWrapper) (models.ExRou
 		//There is no app then create one.
 		var appwrap ironClient.AppWrapper
 		appwrap.App.Name = route.AppName
-		appClinet.AppsPost(appwrap)
+		_, _, err := appClinet.AppsPost(appwrap)
+		if nil != err {
+			// TODO ceate Route failure & callback.
+			return route, err
+		}
+		//fmt.Printf("New functions app: %v \n", retAppwrap)
 	}
 
 	routeClient := ironClient.NewRoutesApiWithBasePath(config.IronFunciotnsServer)
@@ -126,12 +143,12 @@ func CreateRoute(ctx context.Context, route models.ExRouteWrapper) (models.ExRou
 		routewrap.Route = route.Route
 		routewrap.Route.Path = ""
 		fmt.Printf("AppsAppRoutesRoutePatch: %v \n", routewrap)
-		retRoute, resp, err := routeClient.AppsAppRoutesRoutePatch(route.AppName, route.Path, routewrap)
+		retRoute, _, err := routeClient.AppsAppRoutesRoutePatch(route.AppName, route.Path, routewrap)
 		if err != nil {
 			// TODO ceate Route failure & callback.
 			return route, err
 		}
-		fmt.Printf("AppsAppRoutesRoutePatch retRoute = %v \n resp=: %v \n", retRoute, resp.Message)
+		//fmt.Printf("AppsAppRoutesRoutePatch retRoute = %v \n resp=: %v \n", retRoute, resp.Message)
 		route.Route = retRoute.Route
 	}
 

@@ -19,25 +19,25 @@ const (
 	TaskStateDelete = "delete"
 )
 
-type Callback func(ctx context.Context, Args interface{})
+type TaskFunc func(ctx context.Context, taskid string, Args interface{})
 
 //SteelTask  mq task
 type SteelTask struct {
-	Id       string
-	State    string
-	StartAt  time.Time
-	Args     interface{}
-	Callback Callback
-	Cancel   context.CancelFunc
+	Id      string
+	State   string
+	StartAt time.Time
+	Args    interface{}
+	Func    TaskFunc
+	Cancel  context.CancelFunc
 	sync.Mutex
 }
 
 // NewSteelTask generate a new steel task using arg & call back function.
-func NewSteelTask(args interface{}, callback Callback) SteelTask {
+func NewSteelTask(args interface{}, callback TaskFunc) SteelTask {
 	return SteelTask{
-		Id:       uuid.New().String(),
-		State:    TaskStatePendding,
-		Args:     args,
-		Callback: callback,
+		Id:    uuid.New().String(),
+		State: TaskStatePendding,
+		Args:  args,
+		Func:  callback,
 	}
 }

@@ -3,7 +3,9 @@ package mqs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
+	"time"
 )
 
 // MemoryMQ message queue
@@ -46,13 +48,15 @@ func (mq *MemoryMQ) start() {
 					ctx, cancel := context.WithCancel(context.Background())
 					task.Cancel = cancel
 					task.State = TaskStateRunning
+					task.StartAt = time.Now()
 					go func() {
 						defer func() {
 							//Release paralle lock and delete form links(map).
 							<-mq.parallelChan
 							delete(mq.operateLinks, task.Id)
+							fmt.Printf("@@@@@ There are %d tasks left.\n", mq.Cnt())
 						}()
-						task.Callback(ctx, task.Args)
+						task.Func(ctx, task.Id, task.Args)
 					}()
 				} else {
 					//FIXME error
@@ -83,10 +87,10 @@ func (mq *MemoryMQ) Push(ctx context.Context, task *SteelTask) error {
 }
 
 // Delete Delete the task from mq.
-func (mq *MemoryMQ) Delete(task *SteelTask) error {
+func (mq *MemoryMQ) Delete(taskid string) error {
 	// mq.linksMutex.RLock()
 	// defer mq.linksMutex.RUnlock()
-	item, ok := mq.operateLinks[task.Id]
+	item, ok := mq.operateLinks[taskid]
 	if !ok {
 		return errors.New("task not found")
 	}
@@ -101,4 +105,8 @@ func (mq *MemoryMQ) Delete(task *SteelTask) error {
 	}
 
 	return nil
+}
+
+func (mq *MemoryMQ) Cnt() int {
+	return len(mq.operateLinks)
 }

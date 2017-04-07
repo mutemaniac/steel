@@ -33,24 +33,45 @@ func main() {
 		v1.POST("/route", createRoute)
 		async := v1.Group("async")
 		{
+			async.POST("/route/cancel/:taskid", cancelTask)
 			async.POST("/route", asyncCreateRoute)
-			async.POST("/route/:buildid/cancel", asyncCreateRoute)
+			async.POST("/route/builds", cntTask)
 		}
 	}
 
 	router.Run(":8081")
 }
+func cntTask(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"cnt": MQ.Cnt(),
+	})
+
+}
+func cancelTask(c *gin.Context) {
+	taskid := c.Param("taskid")
+	err := MQ.Delete(taskid)
+	if err != nil {
+		c.JSON(308, gin.H{
+			"message": err.Error(),
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"taskid": taskid,
+		})
+	}
+}
+
 func asyncCreateRoute(c *gin.Context) {
 	var route models.AsyncRouteWrapper
 	err := c.BindJSON(&route)
 	if err != nil {
-		c.JSON(304, gin.H{
+		c.JSON(308, gin.H{
 			"message": err.Error(),
 		})
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 	task := mqs.NewSteelTask(route, functions.AsyncCreateRoute)
 	ch := make(chan error, 1)
@@ -59,12 +80,12 @@ func asyncCreateRoute(c *gin.Context) {
 	}()
 	select {
 	case <-ctx.Done():
-		c.JSON(304, gin.H{
+		c.JSON(308, gin.H{
 			"message": "The task queue is full. Please try again later.",
 		})
 	case err = <-ch:
 		if err != nil {
-			c.JSON(304, gin.H{
+			c.JSON(308, gin.H{
 				"message": err.Error(),
 			})
 		} else {
@@ -78,7 +99,7 @@ func createRoute(c *gin.Context) {
 	var route models.ExRouteWrapper
 	err := c.BindJSON(&route)
 	if err != nil {
-		c.JSON(304, gin.H{
+		c.JSON(308, gin.H{
 			"message": err.Error(),
 		})
 		return
@@ -93,12 +114,12 @@ func createRoute(c *gin.Context) {
 	}()
 	select {
 	case <-ctx.Done():
-		c.JSON(304, gin.H{
+		c.JSON(308, gin.H{
 			"message": "Code build timeout",
 		})
 	case err = <-ch:
 		if err != nil {
-			c.JSON(304, gin.H{
+			c.JSON(308, gin.H{
 				"message": err.Error(),
 			})
 		} else {
