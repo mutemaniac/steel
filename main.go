@@ -9,8 +9,11 @@ import (
 	"github.com/mutemaniac/steel/docker"
 	"github.com/mutemaniac/steel/functions"
 	"github.com/mutemaniac/steel/models"
+	"github.com/mutemaniac/steel/mqs"
 	"gopkg.in/gin-gonic/gin.v1"
 )
+
+var MQ *mqs.MemoryMQ
 
 func main() {
 	//Login dockerhub
@@ -21,6 +24,8 @@ func main() {
 			return
 		}
 	}
+	//Init shoddy mq
+	MQ = mqs.NewMemoryMQ()
 
 	router := gin.Default()
 	v1 := router.Group("v1")
@@ -29,6 +34,7 @@ func main() {
 		async := v1.Group("async")
 		{
 			async.POST("/route", asyncCreateRoute)
+			async.POST("/route/:buildid/cancel", asyncCreateRoute)
 		}
 	}
 
@@ -43,16 +49,29 @@ func asyncCreateRoute(c *gin.Context) {
 		})
 		return
 	}
-	ctx, _ := context.WithCancel(context.Background())
-	taskid, err := functions.AsyncCreateRoute(ctx, route)
-	if err != nil {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+	task := mqs.NewSteelTask(route, functions.AsyncCreateRoute)
+	ch := make(chan error, 1)
+	go func() {
+		ch <- MQ.Push(ctx, &task)
+	}()
+	select {
+	case <-ctx.Done():
 		c.JSON(304, gin.H{
-			"message": err.Error(),
+			"message": "The task queue is full. Please try again later.",
 		})
-	} else {
-		c.JSON(200, gin.H{
-			"taskid": taskid,
-		})
+	case err = <-ch:
+		if err != nil {
+			c.JSON(304, gin.H{
+				"message": err.Error(),
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"taskid": task.Id,
+			})
+		}
 	}
 }
 func createRoute(c *gin.Context) {
@@ -64,15 +83,26 @@ func createRoute(c *gin.Context) {
 		})
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Hour)
 	defer cancel()
-	r, err := functions.CreateRoute(ctx, route)
-	if err != nil {
+	var r models.ExRouteWrapper
+	ch := make(chan error, 1)
+	go func() {
+		r, err = functions.CreateRoute(ctx, route)
+		ch <- err
+	}()
+	select {
+	case <-ctx.Done():
 		c.JSON(304, gin.H{
-			"message": err.Error(),
+			"message": "Code build timeout",
 		})
-	} else {
-		c.JSON(200, r)
+	case err = <-ch:
+		if err != nil {
+			c.JSON(304, gin.H{
+				"message": err.Error(),
+			})
+		} else {
+			c.JSON(200, r)
+		}
 	}
-
 }

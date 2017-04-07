@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,7 +13,7 @@ import (
 )
 
 // Build Build docker image. Paramater may be changed sometimes.
-func Build(code string, lang string, image string, appname string) error {
+func Build(ctx context.Context, code string, lang string, image string, appname string) error {
 	fmt.Println("Enter Build.")
 	//Generate a temporary directory
 	dir, err := ioutil.TempDir(config.CodeFileTmpDir, appname)
@@ -35,13 +36,13 @@ func Build(code string, lang string, image string, appname string) error {
 	}
 	//Docker build
 	fmt.Println("dockerbuild.")
-	err = dockerbuild(dir, langHelper, image)
+	err = dockerbuild(ctx, dir, langHelper, image)
 	if err != nil {
 		return err
 	}
 	// Docker push
 	fmt.Println("dockerbuild.")
-	err = dockerpush(image)
+	err = dockerpush(ctx, image)
 	if err != nil {
 		return err
 	}
@@ -49,7 +50,7 @@ func Build(code string, lang string, image string, appname string) error {
 	return nil
 }
 
-func dockerbuild(dir string, helper langs.LangHelper, image string) error {
+func dockerbuild(ctx context.Context, dir string, helper langs.LangHelper, image string) error {
 	fmt.Println("Enter dockerbuild.")
 	dockerfile := filepath.Join(dir, "Dockerfile")
 	if !exists(dockerfile) {
@@ -65,7 +66,7 @@ func dockerbuild(dir string, helper langs.LangHelper, image string) error {
 			return err
 		}
 	}
-	cmd := exec.Command("docker", "build", "-t", image, ".")
+	cmd := exec.CommandContext(ctx, "docker", "build", "-t", image, ".")
 	cmd.Dir = dir
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
@@ -82,9 +83,9 @@ func dockerbuild(dir string, helper langs.LangHelper, image string) error {
 	return nil
 }
 
-func dockerpush(image string) error {
+func dockerpush(ctx context.Context, image string) error {
 	fmt.Println("Enter dockerpush.")
-	cmd := exec.Command("docker", "push", image)
+	cmd := exec.CommandContext(ctx, "docker", "push", image)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {

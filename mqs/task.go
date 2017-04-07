@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -17,8 +19,7 @@ const (
 	TaskStateDelete = "delete"
 )
 
-type callback func(ctx context.Context, Args interface{})
-type cancel func()
+type Callback func(ctx context.Context, Args interface{})
 
 //SteelTask  mq task
 type SteelTask struct {
@@ -26,7 +27,17 @@ type SteelTask struct {
 	State    string
 	StartAt  time.Time
 	Args     interface{}
-	Callback callback
+	Callback Callback
 	Cancel   context.CancelFunc
 	sync.Mutex
+}
+
+// NewSteelTask generate a new steel task using arg & call back function.
+func NewSteelTask(args interface{}, callback Callback) SteelTask {
+	return SteelTask{
+		Id:       uuid.New().String(),
+		State:    TaskStatePendding,
+		Args:     args,
+		Callback: callback,
+	}
 }
