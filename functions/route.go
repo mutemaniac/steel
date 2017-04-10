@@ -3,10 +3,10 @@ package functions
 import (
 	"context"
 	"strings"
-	"time"
 
 	ironClient "github.com/mutemaniac/functions_go"
 	"github.com/mutemaniac/steel/config"
+	"github.com/mutemaniac/steel/docker"
 
 	"fmt"
 
@@ -58,6 +58,7 @@ func doCallBack(ctx context.Context, taskid string, route models.ExRouteWrapper,
 		return err
 	}
 }
+
 func AsyncCreateRoute(ctx context.Context, taskid string, args interface{}) {
 	//route models.AsyncRouteWrapper
 	route, ok := args.(models.AsyncRouteWrapper)
@@ -80,22 +81,22 @@ func AsyncCreateRoute(ctx context.Context, taskid string, args interface{}) {
 func CreateRoute(ctx context.Context, route models.ExRouteWrapper) (models.ExRouteWrapper, error) {
 	fmt.Printf("Enter CreateRoute.\n")
 	if route.Image == "" {
-		route.Image = config.DockerHubServer + `/` +
-			config.DockerImageLib + `/` +
+		route.Image = *config.DockerHubServer + `/` +
+			*config.DockerImageLib + `/` +
 			config.DockerImagePrefix +
-			route.AppName + "_" +
+			route.AppName + "-" +
 			strings.TrimPrefix(route.Path, `/`)
 	}
 	// Build image & push from code.
-	// err := docker.Build(ctx, route.Code, route.Runtime, route.Image, route.AppName)
-	// if err != nil {
-	// 	// TODO ceate Route failure & callback.
-	// 	return route, err
-	// }
-	time.Sleep(time.Second * 30)
+	err := docker.Build(ctx, route.Code, route.Runtime, route.Image, route.AppName)
+	if err != nil {
+		// TODO ceate Route failure & callback.
+		return route, err
+	}
+	//time.Sleep(time.Second * 30)
 
 	// Create Functions's route
-	appClinet := ironClient.NewAppsApiWithBasePath(config.IronFunciotnsServer)
+	appClinet := ironClient.NewAppsApiWithBasePath(*config.IronFunciotnsServer)
 	// FIXME maybe need apiClinet.Configuration
 	appwrapper, _, err := appClinet.AppsAppGet(route.AppName)
 	if nil != err {
@@ -114,7 +115,7 @@ func CreateRoute(ctx context.Context, route models.ExRouteWrapper) (models.ExRou
 		//fmt.Printf("New functions app: %v \n", retAppwrap)
 	}
 
-	routeClient := ironClient.NewRoutesApiWithBasePath(config.IronFunciotnsServer)
+	routeClient := ironClient.NewRoutesApiWithBasePath(*config.IronFunciotnsServer)
 	routewrapper, _, err := routeClient.AppsAppRoutesRouteGet(route.AppName, route.Path)
 	if nil != err {
 		// TODO ceate Route failure & callback.

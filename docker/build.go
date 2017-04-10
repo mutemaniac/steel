@@ -16,7 +16,7 @@ import (
 func Build(ctx context.Context, code string, lang string, image string, appname string) error {
 	fmt.Println("Enter Build.")
 	//Generate a temporary directory
-	dir, err := ioutil.TempDir(config.CodeFileTmpDir, appname)
+	dir, err := ioutil.TempDir(*config.CodeFileTmpDir, appname)
 	if err != nil {
 		fmt.Printf("TempDir error %v.", err)
 		return err

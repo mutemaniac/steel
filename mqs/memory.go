@@ -20,9 +20,9 @@ type MemoryMQ struct {
 // NewMemoryMQ New a MemoryMQ.
 func NewMemoryMQ() *MemoryMQ {
 	mq := MemoryMQ{
-		Queue:        make(chan *SteelTask, TasksCapability),
-		operateLinks: make(map[string]*SteelTask, TasksCapability),
-		parallelChan: make(chan int, MaxTasksParallel),
+		Queue:        make(chan *SteelTask, *TasksCapability),
+		operateLinks: make(map[string]*SteelTask, *TasksCapability),
+		parallelChan: make(chan int, *MaxTasksParallel),
 	}
 	mq.start()
 	return &mq

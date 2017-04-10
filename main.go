@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"flag"
+
 	"github.com/mutemaniac/steel/config"
 	"github.com/mutemaniac/steel/docker"
 	"github.com/mutemaniac/steel/functions"
@@ -16,9 +18,10 @@ import (
 var MQ *mqs.MemoryMQ
 
 func main() {
+	flag.Parse()
 	//Login dockerhub
-	if config.DockerHubPwd != "" {
-		err := docker.Login(config.DockerHubServer, config.DockerHubUser, config.DockerHubPwd)
+	if *config.DockerHubPwd != "" {
+		err := docker.Login(*config.DockerHubServer, *config.DockerHubUser, *config.DockerHubPwd)
 		if err != nil {
 			fmt.Println(err)
 			return

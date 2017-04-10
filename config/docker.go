@@ -1,34 +1,14 @@
 package config
 
 import (
-	"os"
+	"flag"
 )
+
+var DockerHubServer = flag.String("dockerhub-server", "dcatalog.hnaresearch.com", "dockerhub server")
+var DockerHubUser = flag.String("dockerhub-user", "qian.tang@hnair.com", "dockerhub user")
+var DockerHubPwd = flag.String("dockerhub-pwd", "", "dockerhub password")
+var DockerImageLib = flag.String("dockerhub-lib", "tangqian", "dockerhub image lib")
 
 const (
-	dockerHubServerEvn = "DOCKER_HUB_SERVER_EVN"
-	dockerHubUserEvn   = "DOCKER_HUB_USER_EVN"
-	dockerHubPwdEvn    = "DOCKER_HUB_PWD_EVN"
-)
-
-var (
-	DockerHubServer string
-	DockerHubUser   string
-	DockerHubPwd    string
-)
-
-const (
-	DockerImageLib    = "library"
 	DockerImagePrefix = "serverless_"
 )
-
-func init() {
-	DockerHubServer = os.Getenv(dockerHubServerEvn)
-	if DockerHubServer == "" {
-		DockerHubServer = "dcatalog.hnaresearch.com"
-	}
-	DockerHubUser = os.Getenv(dockerHubUserEvn)
-	if DockerHubUser == "" {
-		DockerHubUser = "qian.tang@hnair.com"
-	}
-	DockerHubPwd = os.Getenv(dockerHubPwdEvn)
-}

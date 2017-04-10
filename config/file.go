@@ -1,18 +1,7 @@
 package config
 
-import "os"
-
-const (
-	codeFileTmpDirEvn = "CODE_FILE_TEMP_DIR_EVN"
+import (
+	"flag"
 )
 
-var (
-	CodeFileTmpDir string
-)
-
-func init() {
-	CodeFileTmpDir = os.Getenv(codeFileTmpDirEvn)
-	if CodeFileTmpDir == "" {
-		CodeFileTmpDir = `/Users/tang/Documents/test`
-	}
-}
+var CodeFileTmpDir = flag.String("tmp-dir", "/Users/tang/Documents/test", "CodeFileTmpDir")
