@@ -50,10 +50,11 @@ func (mq *MemoryMQ) start() {
 					task.State = TaskStateRunning
 					task.StartAt = time.Now()
 					go func() {
+						defer delete(mq.operateLinks, task.Id)
+						defer cancel()
 						defer func() {
 							//Release paralle lock and delete form links(map).
 							<-mq.parallelChan
-							delete(mq.operateLinks, task.Id)
 							fmt.Printf("@@@@@ There are %d tasks left.\n", mq.Cnt())
 						}()
 						task.Func(ctx, task.Id, task.Args)
